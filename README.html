@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en_US">
+
+  <head>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" href="css/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  </head>
+
+  <body id="homebody">
+
+    <header id="header" class="bg-success" style="height:100px;">
+      <img src="img/logo.jpg" alt="UMSL-logo" style="width:150px;height:100px; float: left;">
+
+      <title id="title">UMSL Assembly Compiler</title>
+      <br><h1 id="UMSL">Assembly Compiler</h1>
+    </header>
+
+    <div id="navigation" class="col-xs-12 col-sm-3 col-md-2 col-lg-2">
+      <h3 id="navtag">Navigation</h3>
+      <a class="navbuttons" href="home.html">HOME</a><br>
+      <a class="navbuttons" href="README.html">README</a><br>
+      <a class="navbuttons" href="aboutUs.html">ABOUT US</a><br>
+
+      <br><br>
+    </div>
+
+    <div id="homediv" class="col-xs-12 col-sm-9 col-md-10 col-lg-10; hometext">
+<!--
+"ad", "ADD");
+            textField.value = textField.value.replace("su", "SUB");
+            textField.value = textField.value.replace("mu", "MULT");
+            textField.value = textField.value.replace("lo", "LOAD");
+            textField.value = textField.value.replace("stor", "STORE");
+            textField.value = textField.value.replace("co", "COPY");
+            textField.value = textField.value.replace("re", "READ");
+            textField.value = textField.value.replace("wr", "WRITE");
+            textField.value = textField.value.replace("no", "NOOP");
+            textField.value = textField.value.replace("brn", "BRNEG");
+            textField.value = textField.value.replace("brz", "BRZNEG");
+            textField.value = textField.value.replace("brp", "BRPOS");
+            textField.value = textField.value.replace("brzp", "BRZPOS");
+            textField.value = textField.value.replace("brze", "BRZERO");
+            textField.value = textField.value.replace("pu", "PUSH");
+            textField.value = textField.value.replace("po", "POP");
+-->
+      <h1> README </h1><br>
+        <h2>Instructions</h2>
+        <ul>
+            <li>ADD (1, ACC = ACC +arg) ----> "ad"</li>
+            <li>BR (1, jump to arg)</li>
+            <li>BRNEG (1, jump to arg if ACC < 0) ----> "brn"</li>
+            <li>BRZNEG (1, jump to arg if ACC <= 0) ----> "brz"</li>
+            <li>BRPOS (1, jump to arg if ACC > 0) ----> "brp"</li>
+            <li>BRZPOS (1, jump to arg if ACC >= 0) ----> "brzp"</li>
+            <li>BRZERO (1, jump to arg if ACC == 0) ----> "brze"</li>
+            <li>COPY (2, arg1arg2) ----> "co"</li>
+            <li>DIV (1, ACC = ACC /arg) ----> "di"</li>
+            <li>MULT (1, ACC = ACC * arg) ----> "mu"</li>
+            <li>READ (1, arg=input integer) ----> "re"</li>
+            <li>WRITE (1, put arg to output as integer) ----> "wr"</li>
+            <li>STOP (0, stop program)</li>
+            <li>STORE (1, arg = ACC) ----> "stor"</li>
+            <li>SUB (1, ACC = ACC - arg) ----> "su"</li>
+            <li>NOOP (0, nothing) ----> "no"</li>
+            <li>LOAD (1, ACC=arg) ----> "lo"</li>
+            <li>PUSH (0, tos++) ----> "pu"</li>
+            <li>POP (0, tos–) ----> "po"</li>
+            <li>STACKW (1,stack[tos-arg]=ACC)</li>
+            <li>STACKR (1,ACC=stack[tos-arg])</li>
+        </ul>
+
+
+      </div>
+
+<!--
+    <footer id="footer1">
+    </footer>
+-->
+
+  </body>
+</html>

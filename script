@@ -1,0 +1,445 @@
+  <script type="text/javascript">
+        function autoFiltering(e) {
+            var textField = document.getElementById(e);
+            textField.value = textField.value.replace("ad", "ADD");
+            textField.value = textField.value.replace("su", "SUB");
+            textField.value = textField.value.replace("mu", "MULT");
+            textField.value = textField.value.replace("lo", "LOAD");
+            textField.value = textField.value.replace("stor", "STORE");
+            textField.value = textField.value.replace("co", "COPY");
+            textField.value = textField.value.replace("re", "READ");
+            textField.value = textField.value.replace("wr", "WRITE");
+            textField.value = textField.value.replace("no", "NOOP");
+            textField.value = textField.value.replace("brn", "BRNEG");
+            textField.value = textField.value.replace("brz", "BRZNEG");
+            textField.value = textField.value.replace("brp", "BRPOS");
+            textField.value = textField.value.replace("brzp", "BRZPOS");
+            textField.value = textField.value.replace("brze", "BRZERO");
+            textField.value = textField.value.replace("pu", "PUSH");
+            textField.value = textField.value.replace("po", "POP");
+
+        }
+
+
+        $(function() {                      //lined-text area start
+        $(".ui-widget").linedtextarea(
+            {selectedLine: 1}
+        );
+        });                                 //lined-text area end
+
+
+         var control = document.getElementById("myFile");           //File upload start
+            control.addEventListener("change", function(event){
+            var reader = new FileReader();
+         reader.onload = function(event){
+             var contents = event.target.result;
+             document.getElementById('codespace').value = contents;
+         };
+         reader.onerror = function(event){
+             console.error("File could not be read! Code " + event.target.error.code);
+         };
+         console.log("Filename: " + control.files[0].name);
+         reader.readAsText(control.files[0]);
+        }, false);
+
+        window.onload = function(){
+          document.getElementById("result").value = "";
+        }                                                       //File upload end
+
+
+
+        function disname(){
+          var ACC = 0;
+          var arroftoks = [];
+          var arrofvars = new Map();
+          var arrofloops = new Map();
+          var stack = [];
+
+          var StackSize = 0;
+
+          var reservedarr = ["ADD","SUB","MULT","DIV","LOAD","STORE","COPY","READ","WRITE","STOP","NOOP","BR","BRNEG","BRZNEG","BRPOS","BRZPOS","BRZERO","PUSH","POP","STACKW","STACKR"];
+          var arroffuncts = [
+            function(a, b) {  if(!isNaN(a)){ ACC = parseInt(ACC) + parseInt(a); } else{ ACC = parseInt(ACC) + parseInt(arrofvars.get(a)); } }, //ADD
+            function(a, b) { if(!isNaN(a)){ ACC = parseInt(ACC) - parseInt(a); } else{ ACC = parseInt(ACC) - parseInt(arrofvars.get(a)); } }, //SUB
+            function(a, b) { if(!isNaN(a)){ ACC = parseInt(ACC) * parseInt(a); } else{ ACC = parseInt(ACC) * parseInt(arrofvars.get(a)); } }, //MULT
+            function(a, b) { if(!isNaN(a)){ ACC = parseInt(ACC) / parseInt(a); } else{ ACC = parseInt(ACC) / parseInt(arrofvars.get(a)); } }, //DIV
+            function(a, b) { if (!isNaN(a)){ ACC = a; return; } else if (arrofvars.get(a) == undefined) { document.getElementById("result").value = "ERROR: Undeclared variable " + a; throw new Error('Not Found'); } else {ACC = arrofvars.get(a);} }, //LOAD
+            function(a, b) { if (arrofvars.get(a) == undefined) { document.getElementById("result").value = "ERROR: Undeclared variable " + a; throw new Error('Not Found'); } else {arrofvars.set(a, ACC);} }, //STORE
+            function(a, b) { if (arrofvars.get(a) == undefined) { document.getElementById("result").value = "ERROR: Undeclared variable " + a; throw new Error('Not Found'); } else {arrofvars.set(a, arrofvars.get(b));} }, //COPY
+            function(a, b) { if (arrofvars.get(a) == undefined) { document.getElementById("result").value = "ERROR: Undeclared variable " + a; throw new Error('Not Found'); } else {let numprompt = prompt("Give a value"); arrofvars.set(a, numprompt);} }, //READ
+            function(a, b) { if (arrofvars.get(a) == undefined) { document.getElementById("result").value = "ERROR: Undeclared variable " + a; throw new Error('Not Found'); } else {document.getElementById("result").value = "Number is: " + arrofvars.get(a);} }, //WRITE
+            function(a, b) { return; }, //STOP hmmmmmmm...... this should be fine because my parser made sure this is at the end; prob need to account for this though
+            function(a, b) { return; }, //NOOP
+            function(a, b) { if (arrofloops.get(a) == undefined){ document.getElementById("result").value = "ERROR: Undeclared variable " + a; throw new Error('Not Found'); } else {return arrofloops.get(a);} }, //BR
+            function(a, b) { if (arrofloops.get(a) == undefined){ document.getElementById("result").value = "ERROR: Undeclared variable " + a; throw new Error('Not Found'); } else {if ( ACC < 0){ return arrofloops.get(a);} else{ return null; } } }, //BRNEG
+            function(a, b) { if (arrofloops.get(a) == undefined){ document.getElementById("result").value = "ERROR: Undeclared variable " + a; throw new Error('Not Found'); } else {if ( ACC <= 0){ return arrofloops.get(a);} else{ return null; } } }, //BRZNEG
+            function(a, b) { if (arrofloops.get(a) == undefined){ document.getElementById("result").value = "ERROR: Undeclared variable " + a; throw new Error('Not Found'); } else {if ( ACC > 0){ return arrofloops.get(a);} else{ return null; } } }, //BRPOS
+            function(a, b) { if (arrofloops.get(a) == undefined){ document.getElementById("result").value = "ERROR: Undeclared variable " + a; throw new Error('Not Found'); } else {if ( ACC >= 0){ return arrofloops.get(a);} else{ return null; } } }, //BRZPOS
+            function(a, b) { if (arrofloops.get(a) == undefined){ document.getElementById("result").value = "ERROR: Undeclared variable " + a; throw new Error('Not Found'); } else {if ( ACC == 0){ return arrofloops.get(a);} else{ return null; } } }, //BRZERO
+            function(a, b) { stack.push(0); }, //PUSH
+            function(a, b) { stack.pop(); }, //POP
+            function(a, b) { if((stack.length - 1) - a > stack.length -1  || stack.length -1 - a < 0){document.getElementById("result").value = "Error: Stack"; throw new Error('Stack Error');} stack[(stack.length-1)-a] = ACC; }, //STACKW
+            function(a, b) { if((stack.length - 1) - a > stack.length -1  || stack.length -1 - a < 0){document.getElementById("result").value = "Error: Stack"; throw new Error('Stack Error');} ACC = stack[(stack.length-1)-a]; } //STACKR
+            ];
+          function scanforit(){
+            let arroftoks = [];
+            class Token{
+            constructor(tokerid, teval, teline){
+              this.tokid = tokerid; //id of token: rsvd_tk, var_tk, num_tk
+              this.usd = teval; //user defined value
+              this.linenum = teline; //linenumber
+              this.numArgs = null; //number of args, for reserved tks only
+            }
+            }
+            var linesof = document.getElementById('codespace').value.split('\n');
+            var re = new RegExp("^[a-zA-Z][a-zA-Z0-9]*$");
+            var re2 = new RegExp("^[a-zA-Z][a-zA-Z0-9]*:$");
+            for(var linenumber = 0;linenumber < linesof.length; linenumber++){
+              var tk = linesof[linenumber].split(" ");
+              for(var p = 0; p < tk.length; p++){
+                if(reservedarr.includes(tk[p]) == true){
+                  arroftoks.push(new Token("rsvd_tk", tk[p], linenumber));
+                }
+                else if(re.test(tk[p])){
+                  arroftoks.push(new Token("var_tk", tk[p], linenumber));
+                }
+                else if(!isNaN(tk[p])){ //its a number
+                  arroftoks.push(new Token("num_tk", tk[p], linenumber));
+                }
+                else if(re2.test(tk[p])){  //i almost def have to keep them seperate, dont think they can go in arroftoks
+                  arroftoks.push(new Token("label_tk", tk[p], linenumber));
+                }
+                else{
+                  document.getElementById("result").value = "Error Unknown Token on " + linenumber;
+                  throw new Error('Syntax Error');
+                }
+              }
+            }
+            return arroftoks;
+          }
+          arroftoks = scanforit();
+          function parseforit(){
+            let stackflag = 0;
+            let p = 0;
+            while(p < arroftoks.length - 1){
+              if (arroftoks[p].tokid == "label_tk"){
+                arrofloops.set(arroftoks[p].usd.replace(':', ''), p+1); //which token to go to
+                p++;
+                continue;
+              }
+              if(arroftoks[p].usd == "READ"){
+                arroftoks[p].numArgs = 1;
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  document.getElementById("result").value = "Error: Variable expected after READ";
+                  throw new Error('Syntax Error');
+                }
+              }
+              if(arroftoks[p].usd == "WRITE"){
+                arroftoks[p].numArgs = 1;
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  document.getElementById("result").value = "Error: Variable expected after WRITE";
+                  throw new Error('Syntax Error');
+                }
+              }
+              if(arroftoks[p].usd == "STORE"){
+                arroftoks[p].numArgs = 1;
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  document.getElementById("result").value = "Error: Variable expected after STORE";
+                  throw new Error('Syntax Error');
+                }
+              }
+              if(arroftoks[p].usd == "LOAD"){
+                arroftoks[p].numArgs = 1;
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else if(arroftoks[p].tokid == "num_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  document.getElementById("result").value = "Error: Variable or number expected after LOAD";
+                  throw new Error('Syntax Error');
+                }
+              }
+              if(arroftoks[p].usd == "NOOP"){ //whats the point of this
+                arroftoks[p].numArgs = 0;
+                p++;
+                continue;
+              }
+              if(arroftoks[p].usd == "ADD"){
+                arroftoks[p].numArgs = 1;
+                p++;
+                if(arroftoks[p].tokid == "num_tk"){
+                  p++;
+                  continue;
+                }
+                else if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  document.getElementById("result").value = "Error: Variable or number expected after ADD";
+                  throw new Error('Syntax Error');
+                }
+              }
+              if(arroftoks[p].usd == "BR"){
+                arroftoks[p].numArgs = 1;
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+              }
+              if(arroftoks[p].usd == "BRNEG"){
+                arroftoks[p].numArgs = 1;
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  document.getElementById("result").value = "Error: Label name expected after use of BRNEG";
+                  throw new Error('Syntax Error');
+                }
+              }
+              if(arroftoks[p].usd == "BRZNEG"){
+                arroftoks[p].numArgs = 1;
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  document.getElementById("result").value = "Error: Label name expected after use of BRZNEG";
+                  throw new Error('Syntax Error');
+                }
+              }
+              if(arroftoks[p].usd == "BRPOS"){
+                arroftoks[p].numArgs = 1;
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  document.getElementById("result").value = "Error: Label name expected after use of BRPOS";
+                  throw new Error('Syntax Error');
+                }
+              }
+              if(arroftoks[p].usd == "BRZPOS"){
+                arroftoks[p].numArgs = 1;
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  document.getElementById("result").value = "Error: Label name expected after use of BRZPOS";
+                  throw new Error('Syntax Error');
+                }
+              }
+              if(arroftoks[p].usd == "BRZERO"){
+                arroftoks[p].numArgs = 1;
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  document.getElementById("result").value = "Error: Label name expected after use of BRZERO";
+                  throw new Error('Syntax Error');
+                }
+              }
+              if(arroftoks[p].usd == "COPY"){
+                arroftoks[p].numArgs = 2;
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  if(arroftoks[p].tokid == "var_tk"){
+                    p++;
+                    continue;
+                  }
+                  else{
+                    document.getElementById("result").value = "Error: 2 Variables expected after COPY";
+                    throw new Error('Syntax Error');
+                  }
+                }
+                else{
+                  document.getElementById("result").value = "Error: Variable expected after COPY";
+                  throw new Error('Syntax Error');
+                }
+              }
+              if(arroftoks[p].usd == "DIV"){
+                arroftoks[p].numArgs = 1;
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else if(arroftoks[p].tokid == "num_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  document.getElementById("result").value = "Error: Variable or number expected after DIV";
+                  throw new Error('Syntax Error');
+                }
+              }
+              if(arroftoks[p].usd == "MULT"){
+                arroftoks[p].numArgs = 1;
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else if(arroftoks[p].tokid == "num_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  document.getElementById("result").value = "Error: Variable or Number expected after MULT";
+                  throw new Error('Syntax Error');
+                }
+              }
+              if(arroftoks[p].usd == "SUB"){
+                arroftoks[p].numArgs = 1;
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else if(arroftoks[p].tokid == "num_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  document.getElementById("result").value = "Error: Variable or Number expected after SUB";
+                  throw new Error('Syntax Error');
+                }
+              }
+              if(arroftoks[p].usd == "PUSH"){ //check before or do like old one?
+                arroftoks[p].numArgs = 0;
+                p++;
+                continue;
+              }
+              if(arroftoks[p].usd == "POP"){
+                arroftoks[p].numArgs = 0;
+                p++;
+                continue;
+              }
+              if(arroftoks[p].usd == "STACKW"){
+                arroftoks[p].numArgs = 1;
+                p++;
+                if(arroftoks[p].tokid == "num_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  document.getElementById("result").value = "Error: Number expected after STACKW";
+                  throw new Error('Syntax Error');
+                  p++;
+                  continue;
+                }
+              }
+              if(arroftoks[p].usd == "STACKR"){
+                arroftoks[p].numArgs = 1;
+                p++;
+                if(arroftoks[p].tokid == "num_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  document.getElementById("result").value = "Error: Number expected after STACKR";
+                  throw new Error('Syntax Error');
+                  p++;
+                  continue;
+                }
+              }
+              if(arroftoks[p].usd == "STOP"){
+                arroftoks[p].numArgs = 0;
+                while(p<arroftoks.length - 1){
+                  p++;
+                  if(arroftoks[p].tokid == "var_tk"){
+                    p++;
+                    if(arroftoks[p].tokid == "num_tk"){ //need to verify that these variables maybe could do in execution as well
+                      arrofvars.set(arroftoks[p-1].usd, arroftoks[p].usd);
+                      continue;
+                    }
+                    else{
+                      document.getElementById("result").value = "ERROR: Number expected";
+                      throw new Error('Syntax Error');
+                    }
+                  }
+                  else{
+                    document.getElementById("result").value = "ERROR: Variable expected";
+                    throw new Error('Syntax Error');
+                  }
+                }
+              }
+              else{
+                document.getElementById("result").value = "ERROR: Uknown argument";
+              }
+            }
+            return arrofvars;
+          }
+          arrofvars = parseforit();
+          function goforit(){
+            var p = 0;
+
+            while(p < arroftoks.length - 1){
+
+              if(arroftoks[p].numArgs == null){ //mainly for end list of args
+
+                p++;
+              }
+              else{
+                let i = arroftoks[p].numArgs;
+                if (i == 0){
+                  arroffuncts[reservedarr.indexOf(arroftoks[p].usd)](0,0);
+                  p++;
+                }
+                else if (i == 1){
+                  if(arroftoks[p].usd == "BR" ||arroftoks[p].usd == "BRNEG" ||arroftoks[p].usd == "BRZNEG" ||arroftoks[p].usd == "BRPOS" ||arroftoks[p].usd == "BRZPOS" ||arroftoks[p].usd == "BRZERO"){
+                    let holdit = arroffuncts[reservedarr.indexOf(arroftoks[p].usd)](arroftoks[p+1].usd, 0);
+                    if (holdit == null){
+                      p++;
+                    }
+                    else{
+                      p = holdit;
+                    }
+                  }
+                  else{
+                  arroffuncts[reservedarr.indexOf(arroftoks[p].usd)](arroftoks[p+1].usd, 0);
+                  p++;
+                  }
+                }
+                else if (i == 2){
+                  //alert("here 2");
+                  arroffuncts[reservedarr.indexOf(arroftoks[p].usd)](arroftoks[p+1].usd, arroftoks[p+2].usd);
+                  p++;
+                }
+              }
+            }
+          }
+         goforit();
+        }
+
+        </script>
